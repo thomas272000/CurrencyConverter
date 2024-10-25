@@ -16,10 +16,11 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from api.views import ConvertCurrencyAPIView,ConversionHistoryAPIView
+from api.views import ConvertCurrencyAPIView,ConversionHistoryAPIView,LiveExchangeRatesAPIView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('convert', ConvertCurrencyAPIView.as_view(), name='convert_currency'),  
-    path('history', ConversionHistoryAPIView.as_view(), name='conversion_history'),  
+    path('history', ConversionHistoryAPIView.as_view(), name='conversion_history'), 
+    path('live',LiveExchangeRatesAPIView.as_view(),name='live_exchange_rate') 
 ]

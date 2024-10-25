@@ -10,6 +10,8 @@ from .serializers import ConversionSerializer
 
 API_URL = 'https://v6.exchangerate-api.com/v6/d84978a6f65de1281f2b766c/latest/'
 
+
+# To convert Currency
 class ConvertCurrencyAPIView(APIView):
     def post(self, request):
         from_currency = request.data.get('from_currency')
@@ -56,3 +58,36 @@ class ConversionHistoryAPIView(APIView):
         conversions = ConversionModel.objects.all().order_by('-date')[:5]
         serializer = ConversionSerializer(conversions, many=True)
         return Response(serializer.data)
+    
+
+#To see Live exchange Rate
+class LiveExchangeRatesAPIView(APIView):
+    def get(self, request):
+        base_currency = request.query_params.get('base_currency', 'USD') 
+        response = requests.get(f'{API_URL}{base_currency}')
+        
+        if response.status_code != 200:
+            return Response(
+                {"error": f"API request failed with status code {response.status_code}. Message: {response.text}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+        try:
+            data = response.json()
+        except ValueError:
+            return Response(
+                {"error": "Failed to parse response from the currency API."},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+    
+        if 'conversion_rates' in data:
+            return Response(
+                {
+                    "base_currency": base_currency,
+                    "conversion_rates": data['conversion_rates']
+                },
+                status=status.HTTP_200_OK
+            )
+        else:
+            return Response({"error": "Unexpected API response format."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
